@@ -14,4 +14,4 @@ pub mod err;
 pub use ext_io::{Dump, Load, ReadExt, WriteExt};
 
 #[cfg(test)]
-mod tests {}
+mod tests;
