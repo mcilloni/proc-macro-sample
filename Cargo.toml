@@ -1,0 +1,15 @@
+[package]
+name = "proc-macro-sample"
+version = "0.1.0"
+authors = ["Marco Cilloni <m.c.cilloni@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+byteorder = "*"
+enum_primitive = "*"
+failure = "*"
+failure_derive = "*"
+lazy_static = "*"
+num-traits = "*"
+
+load-dump-derive = {path = "load-dump-derive"}
