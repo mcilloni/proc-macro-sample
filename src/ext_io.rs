@@ -139,6 +139,39 @@ pub trait WriteExt: WriteBytesExt {
 
 impl<W: io::Write + ?Sized> WriteExt for W {}
 
+macro_rules! impl_dump_array {
+    () => (
+        impl_dump_array!(0);
+    );
+
+    ($n:literal) => (
+        impl<T: Dump> Dump for [T;$n] {
+            #[allow(non_snake_case)]
+            fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {
+                for el in self {
+                    write.dump(el)?;
+                }
+
+                Ok(())
+            }
+        }
+    );
+}
+
+impl_dump_array!();
+impl_dump_array!(1);
+impl_dump_array!(2);
+impl_dump_array!(3);
+impl_dump_array!(4);
+impl_dump_array!(5);
+impl_dump_array!(6);
+impl_dump_array!(7);
+impl_dump_array!(8);
+impl_dump_array!(9);
+impl_dump_array!(10);
+impl_dump_array!(11);
+impl_dump_array!(12);
+
 macro_rules! impl_dump_tuple {
     () => (
         impl Dump for () {
@@ -352,6 +385,41 @@ pub trait ReadExt: ReadBytesExt + Sized {
 }
 
 impl<R: io::Read> ReadExt for R {}
+
+macro_rules! impl_load_array {
+    () => (
+        impl_dump_array!(0);
+    );
+
+    ($n:literal) => (
+        impl<T: Load + Default> Load for [T;$n] {
+            #[allow(non_snake_case)]
+            fn load(write: &mut (impl io::Write + ?Sized)) -> Result<()> {
+                use std::ptr;
+                use std::mem;
+
+                let mut arr : [T; $n];
+
+
+                Ok(arr)
+            }
+        }
+    );
+}
+
+impl_load_array!();
+impl_load_array!(1);
+impl_load_array!(2);
+impl_load_array!(3);
+impl_load_array!(4);
+impl_load_array!(5);
+impl_load_array!(6);
+impl_load_array!(7);
+impl_load_array!(8);
+impl_load_array!(9);
+impl_load_array!(10);
+impl_load_array!(11);
+impl_load_array!(12);
 
 macro_rules! impl_load_tuple {
     () => (

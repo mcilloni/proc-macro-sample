@@ -9,7 +9,9 @@ byteorder = "*"
 enum_primitive = "*"
 failure = "*"
 failure_derive = "*"
-lazy_static = "*"
 num-traits = "*"
 
 load-dump-derive = {path = "load-dump-derive"}
+
+[dev-dependencies]
+rand = "*"
