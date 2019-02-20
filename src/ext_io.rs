@@ -43,6 +43,12 @@ impl<T: Dump> Dump for Option<T> {
     }
 }
 
+impl<T: Dump> Dump for Box<[T]> {
+    fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {
+        write.dump(&(self as &[T]))
+    }
+}
+
 impl<T: Dump> Dump for Vec<T> {
     fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {
         write.dump(&(self as &[T]))
@@ -99,11 +105,13 @@ dump_sint!(i8);
 dump_sint!(i16);
 dump_sint!(i32);
 dump_sint!(i64);
+dump_sint!(i128);
 
 dump_uint!(u8);
 dump_uint!(u16);
 dump_uint!(u32);
 dump_uint!(u64);
+dump_uint!(u128);
 
 pub trait WriteExt: WriteBytesExt {
     fn dump<D: Dump>(&mut self, to_dump: &D) -> Result<()> {
@@ -186,6 +194,12 @@ impl<T: Load> Load for Box<T> {
     }
 }
 
+impl<T: Load> Load for Box<[T]> {
+    fn load(read: &mut impl io::Read) -> Result<Self> {
+        Vec::load(read).map(Vec::into_boxed_slice)
+    }
+}
+
 impl<T: Load> Load for Option<T> {
     fn load(read: &mut impl io::Read) -> Result<Self> {
         if read.load()? {
@@ -253,11 +267,13 @@ load_sint!(i8);
 load_sint!(i16);
 load_sint!(i32);
 load_sint!(i64);
+load_sint!(i128);
 
 load_uint!(u8);
 load_uint!(u16);
 load_uint!(u32);
 load_uint!(u64);
+load_uint!(u128);
 
 pub struct ArrayIter<'a, T: Load, R: 'a> {
     read: &'a mut R,
