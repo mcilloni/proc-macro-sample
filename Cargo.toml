@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 arrayvec = "*"
-byteorder = "*"
+byteorder = {version = "*", features = ["i128"]}
 enum_primitive = "*"
 failure = "*"
 failure_derive = "*"

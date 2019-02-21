@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::io;
 use std::marker::PhantomData;
 use std::mem::size_of;
@@ -47,6 +48,14 @@ impl<T: Dump> Dump for Box<[T]> {
     fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {
         write.dump(&(self as &[T]))
     }
+}
+
+impl<T: Dump, U: Dump> Dump for HashMap<T, U> {
+    fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {}
+}
+
+impl<T: Dump, It: Iterator<Item=T>> Dump for It {
+    
 }
 
 impl<T: Dump> Dump for Vec<T> {
@@ -119,19 +128,29 @@ pub trait WriteExt: WriteBytesExt {
     }
 
     fn write_leint<N: Signed + ToPrimitive>(&mut self, n: N) -> Result<()> {
-        let prim = n.to_i64().unwrap();
+        if size_of::<N>() == size_of::<i128>() {
+            self.write_i128::<LE>(n.to_i128().unwrap())
+                .context(FileWrite)?;
+        } else {
+            let prim = n.to_i64().unwrap();
 
-        self.write_int::<LE>(prim, size_of::<N>())
-            .context(FileWrite)?;
+            self.write_int::<LE>(prim, size_of::<N>())
+                .context(FileWrite)?;
+        }
 
         Ok(())
     }
 
     fn write_leuint<N: Unsigned + ToPrimitive>(&mut self, n: N) -> Result<()> {
-        let prim = n.to_u64().unwrap();
+        if size_of::<N>() == size_of::<u128>() {
+            self.write_u128::<LE>(n.to_u128().unwrap())
+                .context(FileWrite)?;
+        } else {
+            let prim = n.to_u64().unwrap();
 
-        self.write_uint::<LE>(prim, size_of::<N>())
-            .context(FileWrite)?;
+            self.write_uint::<LE>(prim, size_of::<N>())
+                .context(FileWrite)?;
+        }
 
         Ok(())
     }
@@ -140,8 +159,8 @@ pub trait WriteExt: WriteBytesExt {
 impl<W: io::Write + ?Sized> WriteExt for W {}
 
 macro_rules! impl_dump_array_len {
-    ($n:literal) => (
-        impl<T: Dump> Dump for [T;$n] {
+    ($n:literal) => {
+        impl<T: Dump> Dump for [T; $n] {
             #[allow(non_snake_case)]
             fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {
                 for el in self {
@@ -151,7 +170,7 @@ macro_rules! impl_dump_array_len {
                 Ok(())
             }
         }
-    );
+    };
 }
 
 macro_rules! impl_dump_array {
@@ -362,23 +381,35 @@ pub trait ReadExt: ReadBytesExt + Sized {
     }
 
     fn read_leint<N: Signed + FromPrimitive>(&mut self) -> Result<N> {
-        let res = self.read_int::<LE>(size_of::<N>()).context(FileRead)?;
+        if size_of::<N>() == size_of::<i128>() {
+            let res = self.read_i128::<LE>().context(FileRead)?;
 
-        Ok(<N>::from_i64(res).unwrap())
+            Ok(<N>::from_i128(res).unwrap())
+        } else {
+            let res = self.read_int::<LE>(size_of::<N>()).context(FileRead)?;
+
+            Ok(<N>::from_i64(res).unwrap())
+        }
     }
 
     fn read_leuint<N: Unsigned + FromPrimitive>(&mut self) -> Result<N> {
-        let res = self.read_uint::<LE>(size_of::<N>()).context(FileRead)?;
+        if size_of::<N>() == size_of::<u128>() {
+            let res = self.read_u128::<LE>().context(FileRead)?;
 
-        Ok(<N>::from_u64(res).unwrap())
+            Ok(<N>::from_u128(res).unwrap())
+        } else {
+            let res = self.read_uint::<LE>(size_of::<N>()).context(FileRead)?;
+
+            Ok(<N>::from_u64(res).unwrap())
+        }
     }
 }
 
 impl<R: io::Read> ReadExt for R {}
 
 macro_rules! impl_load_array_len {
-    ($n:literal) => (
-        impl<T: Load> Load for [T;$n] {
+    ($n:literal) => {
+        impl<T: Load> Load for [T; $n] {
             #[allow(non_snake_case)]
             fn load(read: &mut impl io::Read) -> Result<Self> {
                 use arrayvec::ArrayVec;
@@ -392,7 +423,7 @@ macro_rules! impl_load_array_len {
                 arrv.into_inner().map_err(|_| ErrorKind::Unknown.into())
             }
         }
-    );
+    };
 }
 
 macro_rules! impl_load_array {
