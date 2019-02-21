@@ -54,10 +54,6 @@ impl<T: Dump, U: Dump> Dump for HashMap<T, U> {
     fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {}
 }
 
-impl<T: Dump, It: Iterator<Item=T>> Dump for It {
-    
-}
-
 impl<T: Dump> Dump for Vec<T> {
     fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {
         write.dump(&(self as &[T]))
@@ -125,6 +121,16 @@ dump_uint!(u128);
 pub trait WriteExt: WriteBytesExt {
     fn dump<D: Dump>(&mut self, to_dump: &D) -> Result<()> {
         to_dump.dump(self)
+    }
+
+    fn write_iter<T: Dump>(&mut self, mut it: impl Iterator<Item=T>, len: usize) -> Result<()> {
+        self.dump(&(len as u64))?;
+
+        for elem in it {
+            self.dump(&elem)?
+        }
+
+        Ok(())
     }
 
     fn write_leint<N: Signed + ToPrimitive>(&mut self, n: N) -> Result<()> {

@@ -50,6 +50,9 @@ pub enum ErrorKind {
     #[fail(display = "Invalid UTF-8 detected in input")]
     InvalidUtf8,
 
+    #[fail(display = "No size hint")]
+    NoSizeHint,
+
     #[fail(display = "Unknown error")]
     Unknown,
 }
