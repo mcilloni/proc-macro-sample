@@ -1,3 +1,4 @@
+extern crate arrayvec;
 extern crate byteorder;
 extern crate enum_primitive;
 extern crate failure;

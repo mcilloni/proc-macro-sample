@@ -5,6 +5,7 @@ authors = ["Marco Cilloni <m.c.cilloni@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+arrayvec = "*"
 byteorder = "*"
 enum_primitive = "*"
 failure = "*"

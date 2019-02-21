@@ -22,6 +22,7 @@ impl Sample {
 
         Self {
             some_box_arr: (0..20).map(|_| rng.gen()).collect(),
+            some_enum: 
         }
     }
 }

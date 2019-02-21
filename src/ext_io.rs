@@ -386,40 +386,29 @@ pub trait ReadExt: ReadBytesExt + Sized {
 
 impl<R: io::Read> ReadExt for R {}
 
-macro_rules! impl_load_array {
-    () => (
-        impl_dump_array!(0);
-    );
-
+macro_rules! impl_load_array_len {
     ($n:literal) => (
         impl<T: Load + Default> Load for [T;$n] {
             #[allow(non_snake_case)]
-            fn load(write: &mut (impl io::Write + ?Sized)) -> Result<()> {
-                use std::ptr;
-                use std::mem;
+            fn load(write: &mut (impl io::Write + ?Sized)) -> Result<[T; $n]> {
+                use arrayvec::ArrayVec;
 
-                let mut arr : [T; $n];
+                let mut arrv = ArrayVec::new();
 
 
-                Ok(arr)
+                Ok(arrv.into_inner().expect("capacity error, shouldn't happen"))
             }
         }
     );
 }
 
-impl_load_array!();
-impl_load_array!(1);
-impl_load_array!(2);
-impl_load_array!(3);
-impl_load_array!(4);
-impl_load_array!(5);
-impl_load_array!(6);
-impl_load_array!(7);
-impl_load_array!(8);
-impl_load_array!(9);
-impl_load_array!(10);
-impl_load_array!(11);
-impl_load_array!(12);
+macro_rules! impl_load_array {
+    ($($n:literal)+) => {
+        $(impl_load_array_len!($n);)*
+    };
+}
+
+impl_load_array!(0 1 2 3 4 5 6 7 8 9 10 11 12);
 
 macro_rules! impl_load_tuple {
     () => (
