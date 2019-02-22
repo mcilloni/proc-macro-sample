@@ -1,3 +1,5 @@
+use std::collections::{BTreeMap, HashMap};
+
 use rand::{thread_rng, Rng};
 
 use crate::ext_io::{ReadExt, WriteExt};
@@ -15,6 +17,8 @@ struct Sample {
     some_box_arr: Box<[i32]>,
     some_enum_arr: [SampleEnum; 3],
     some_vec: Vec<String>,
+    some_hmap: HashMap<String, String>,
+    some_tmap: BTreeMap<i32, u128>,
 }
 
 impl Sample {
@@ -34,6 +38,15 @@ impl Sample {
                 Tuple(rng.gen(), rng.gen(), Box::new(One)),
             ],
             some_vec: vec!["one".into(), "two".into(), "three".into()],
+            some_hmap: {
+                let mut hmap = HashMap::new();
+                hmap.insert("one".into(), "uno".into());
+                hmap.insert("two".into(), "due".into());
+                hmap.insert("three".into(), "tre".into());
+
+                hmap
+            },
+            some_tmap: (0..17).map(|_| (rng.gen(), rng.gen())).collect(),
         }
     }
 }

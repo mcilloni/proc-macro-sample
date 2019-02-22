@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::io;
 use std::marker::PhantomData;
 use std::mem::size_of;
@@ -50,8 +50,28 @@ impl<T: Dump> Dump for Box<[T]> {
     }
 }
 
-impl<T: Dump, U: Dump> Dump for HashMap<T, U> {
-    fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {}
+impl<T: Dump, U: Dump> Dump for BTreeMap<T, U> {
+    fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {
+        write.write_iter(self.iter(), self.len())
+    }
+}
+
+impl<T: Dump> Dump for BTreeSet<T> {
+    fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {
+        write.write_iter(self.iter(), self.len())
+    }
+}
+
+impl<T: Dump + std::cmp::Eq + std::hash::Hash, U: Dump> Dump for HashMap<T, U> {
+    fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {
+        write.write_iter(self.iter(), self.len())
+    }
+}
+
+impl<T: Dump + std::cmp::Eq + std::hash::Hash> Dump for HashSet<T> {
+    fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {
+        write.write_iter(self.iter(), self.len())
+    }
 }
 
 impl<T: Dump> Dump for Vec<T> {
@@ -62,13 +82,15 @@ impl<T: Dump> Dump for Vec<T> {
 
 impl<'a, T: Dump> Dump for &'a [T] {
     fn dump(&self, write: &mut (impl io::Write + ?Sized)) -> Result<()> {
-        write.dump(&(self.len() as u64))?;
+        /* write.dump(&(self.len() as u64))?;
 
         for elem in self.iter() {
             write.dump(elem)?
         }
 
-        Ok(())
+        Ok(()) */
+
+        write.write_iter(self.iter(), self.len())
     }
 }
 
@@ -123,7 +145,11 @@ pub trait WriteExt: WriteBytesExt {
         to_dump.dump(self)
     }
 
-    fn write_iter<T: Dump>(&mut self, mut it: impl Iterator<Item=T>, len: usize) -> Result<()> {
+    fn write_iter<T: Dump>(&mut self, it: impl Iterator<Item=T>, len: usize) -> Result<()> {   
+        let sz_hint = it.size_hint().1.ok_or_else(|| NoSizeHint)?;
+
+        assert!(sz_hint == len);
+
         self.dump(&(len as u64))?;
 
         for elem in it {
@@ -248,6 +274,58 @@ impl<T: Load> Load for Box<[T]> {
     }
 }
 
+impl<T: Load + std::cmp::Ord, U: Load> Load for BTreeMap<T,U> {
+    fn load(read: &mut impl io::Read) -> Result<Self> {
+        let mut ret = Self::new();
+
+        for pair_res in read.iter_array()? {
+            let (key, val) = pair_res?;
+            
+            ret.insert(key, val);
+        }
+
+        Ok(ret)
+    }
+}
+
+impl<T: Load + std::cmp::Ord,> Load for BTreeSet<T> {
+    fn load(read: &mut impl io::Read) -> Result<Self> {
+        let mut ret = Self::new();
+
+        for res in read.iter_array()? {
+            ret.insert(res?);
+        }
+
+        Ok(ret)
+    }
+}
+
+impl<T: Load + std::cmp::Eq + std::hash::Hash, U: Load> Load for HashMap<T,U> {
+    fn load(read: &mut impl io::Read) -> Result<Self> {
+        let mut ret = Self::new();
+
+        for pair_res in read.iter_array()? {
+            let (key, val) = pair_res?;
+            
+            ret.insert(key, val);
+        }
+
+        Ok(ret)
+    }
+}
+
+impl<T: Load + std::cmp::Eq + std::hash::Hash> Load for HashSet<T> {
+    fn load(read: &mut impl io::Read) -> Result<Self> {
+        let mut ret = Self::new();
+
+        for res in read.iter_array()? {
+            ret.insert(res?);
+        }
+
+        Ok(ret)
+    }
+}
+
 impl<T: Load> Load for Option<T> {
     fn load(read: &mut impl io::Read) -> Result<Self> {
         if read.load()? {
@@ -281,7 +359,7 @@ impl Load for String {
 
 impl<T: Load> Load for Vec<T> {
     fn load(read: &mut impl io::Read) -> Result<Self> {
-        let mut ret: Vec<T> = Vec::new();
+        let mut ret = Self::new();
 
         for next in read.iter_array()? {
             ret.push(next?);
