@@ -102,7 +102,7 @@ pub fn gen(ast: DeriveInput) -> TokenStream {
     quote! {
         #[allow(unused_qualifications)]
         impl #impl_generics crate::Load for #name #ty_generics #where_clause {
-            fn load(read: &mut impl std::io::Read) -> crate::err::Result<Self> {
+            fn load(read: &mut impl std::io::Read) -> crate::Result<Self> {
                 Ok(#load_body)
             }
         }

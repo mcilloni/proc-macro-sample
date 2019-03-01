@@ -166,7 +166,7 @@ pub fn gen(ast: DeriveInput) -> TokenStream {
     quote! {
         #[allow(unused_qualifications)]
         impl #impl_generics crate::Dump for #name #ty_generics #where_clause {
-            fn dump(&self, write: &mut (impl ::std::io::Write + ?Sized)) -> crate::err::Result<()> {
+            fn dump(&self, write: &mut (impl ::std::io::Write + ?Sized)) -> crate::Result<()> {
                 {
                     #dump_body
                 }
