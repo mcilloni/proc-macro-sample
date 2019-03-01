@@ -25,7 +25,7 @@ fn render_fields(fields: &Fields) -> TokenStream {
         if skip {
             quote! {#id: std::default::Default::default()}
         } else {
-            quote! {#id : crate::ext_io::Load::load(read)?}
+            quote! {#id : crate::Load::load(read)?}
         }
     }
 
@@ -84,7 +84,7 @@ pub fn gen(ast: DeriveInput) -> TokenStream {
 
             quote! {
                 {
-                    let pos : u32 = crate::ext_io::Load::load(read)?;
+                    let pos : u32 = crate::Load::load(read)?;
 
                     match pos {
                         #(
@@ -101,7 +101,7 @@ pub fn gen(ast: DeriveInput) -> TokenStream {
 
     quote! {
         #[allow(unused_qualifications)]
-        impl #impl_generics crate::ext_io::Load for #name #ty_generics #where_clause {
+        impl #impl_generics crate::Load for #name #ty_generics #where_clause {
             fn load(read: &mut impl std::io::Read) -> crate::err::Result<Self> {
                 Ok(#load_body)
             }
