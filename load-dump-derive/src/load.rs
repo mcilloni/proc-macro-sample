@@ -25,7 +25,7 @@ fn render_fields(fields: &Fields) -> TokenStream {
         if skip {
             quote! {#id: std::default::Default::default()}
         } else {
-            quote! {#id : crate::Load::load(read)?}
+            quote! {#id : ::proc_macro_sample::Load::load(read)?}
         }
     }
 
@@ -84,7 +84,7 @@ pub fn gen(ast: DeriveInput) -> TokenStream {
 
             quote! {
                 {
-                    let pos : u32 = crate::Load::load(read)?;
+                    let pos : u32 = ::proc_macro_sample::Load::load(read)?;
 
                     match pos {
                         #(
@@ -101,8 +101,8 @@ pub fn gen(ast: DeriveInput) -> TokenStream {
 
     quote! {
         #[allow(unused_qualifications)]
-        impl #impl_generics crate::Load for #name #ty_generics #where_clause {
-            fn load(read: &mut impl std::io::Read) -> crate::Result<Self> {
+        impl #impl_generics ::proc_macro_sample::Load for #name #ty_generics #where_clause {
+            fn load(read: &mut impl std::io::Read) -> ::proc_macro_sample::Result<Self> {
                 Ok(#load_body)
             }
         }

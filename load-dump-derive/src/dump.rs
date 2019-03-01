@@ -45,8 +45,8 @@ fn render_enum_dumps((pos, v): (Index, &Variant)) -> TokenStream {
     };
 
     quote! {
-        crate::Dump::dump(&(#pos as u32), write)?;
-        #(crate::Dump::dump(&#fnames, write)?;)*
+        ::proc_macro_dump::Dump::dump(&(#pos as u32), write)?;
+        #(::proc_macro_dump::Dump::dump(&#fnames, write)?;)*
     }
 }
 
@@ -103,7 +103,7 @@ fn render_struct_field_dump(field: &Field) -> TokenStream {
     {
         if !attrs.iter().any(has_skip) {
             quote! {
-                crate::Dump::dump(&self.#id, write)?;
+                ::proc_macro_dump::Dump::dump(&self.#id, write)?;
             }
         } else {
             quote! {}
@@ -119,7 +119,7 @@ fn render_tuple_field_dump((pos, field): (usize, &Field)) -> TokenStream {
 
     if !attrs.iter().any(has_skip) {
         quote! {
-            crate::Dump::dump(&self.#pos, write)?;
+            ::proc_macro_dump::Dump::dump(&self.#pos, write)?;
         }
     } else {
         quote! {}
@@ -165,8 +165,8 @@ pub fn gen(ast: DeriveInput) -> TokenStream {
 
     quote! {
         #[allow(unused_qualifications)]
-        impl #impl_generics crate::Dump for #name #ty_generics #where_clause {
-            fn dump(&self, write: &mut (impl ::std::io::Write + ?Sized)) -> crate::Result<()> {
+        impl #impl_generics ::proc_macro_dump::Dump for #name #ty_generics #where_clause {
+            fn dump(&self, write: &mut (impl ::std::io::Write + ?Sized)) -> ::proc_macro_dump::Result<()> {
                 {
                     #dump_body
                 }
